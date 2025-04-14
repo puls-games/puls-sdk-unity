@@ -20,7 +20,27 @@ Documentation could be found at the [official website][https://hello.puls.games/
 
 ## API
 
+```CSharp
+// Check platform
+if (PulsBridge.IsMobile) {
+    Debug.Log("Running on mobile device");
+}
 
+// Get user language
+string userLanguage = PulsBridge.Language;
+
+// Save data
+PulsBridge.SaveData("playerName", "John Doe");
+
+// Load data
+string playerName = PulsBridge.LoadData("playerName");
+
+// Remove data
+PulsBridge.RemoveData("playerName");
+
+// Clear all data
+PulsBridge.ClearAllData();
+```
 
 
 
