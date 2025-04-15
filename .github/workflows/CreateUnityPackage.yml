@@ -11,18 +11,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Полная история для корректной работы
+
+      - name: Verify files exist
+        run: |
+          ls ./Assets/Plugins/PulsBridge.jslib || exit 1
+          ls ./Assets/Puls/PulsBridge.cs || exit 1
+          ls ./Assets/WebGLTemplates/PulsTemplate/index.html || exit 1
 
       - name: Create Builds directory
         run: mkdir -p build
       
-      - name: create unitypackage from files
+      - name: Create unitypackage
+        id: create-pkg
         uses: natsuneko-laboratory/create-unitypackage@v3
         with:
           files: |
-            ./Assets/Plugins/PulsBridge.jslib
-            ./Assets/Puls/PulsBridge.cs
-            ./Assets/WebGLTemplates/PulsTemplate/index.html
-          dest: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+            Assets/Plugins/PulsBridge.jslib
+            Assets/Puls/PulsBridge.cs
+            Assets/WebGLTemplates/PulsTemplate/index.html
+          dest: ./build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
 
       - name: Verify package creation
         run: |
