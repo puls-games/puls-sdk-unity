@@ -18,7 +18,7 @@ jobs:
           files: |
             ./Assets/Plugins/PulsBridge.jslib
             ./Assets/Puls/PulsBridge.cs
-            ./Assets/WebGLTemplates/PulsTemplate/index.HTML
+            ./Assets/WebGLTemplates/PulsTemplate/index.html
           dest: test.unitypackage
 
       - name: create unitypackage from glob pattern
