@@ -16,8 +16,15 @@ jobs:
       with:
         fetch-depth: 0
         
+    - name: Verify files exist
+      run: |
+        ls Assets/Plugins/PulsBridge.jslib || exit 1
+        ls Assets/Puls/PulsBridge.cs || exit 1
+        ls Assets/WebGLTemplates/PulsTemplate/index.html || exit 1
+        
     - name: Create UnityPackage
-      uses: game-ci/create-unitypackage@v2
+      id: create-pkg
+      uses: game-ci/unity-actions/create-unitypackage@v0.1
       with:
         files: |
           Assets/Plugins/PulsBridge.jslib
@@ -27,7 +34,11 @@ jobs:
         output-path: 'Packages'
         version: '1.0.${{ github.run_number }}'
         
+    - name: Verify package created
+      run: ls Packages/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage || exit 1
+        
     - name: Upload Artifact
+      if: steps.create-pkg.outcome == 'success'
       uses: actions/upload-artifact@v3
       with:
         name: PulsBridgeSDK.unitypackage
