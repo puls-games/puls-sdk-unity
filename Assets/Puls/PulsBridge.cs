@@ -14,25 +14,28 @@ public static class PulsBridge
     [DllImport("__Internal")]
     private static extern string Puls_GetLanguage();
     
-    // Storage methods
     [DllImport("__Internal")]
-    private static extern void Puls_SaveToStorage(string key, string value);
-    
-    [DllImport("__Internal")]
-    private static extern IntPtr Puls_LoadFromStorage(string key);
-    
-    [DllImport("__Internal")]
-    private static extern void Puls_RemoveFromStorage(string key);
-    
-    [DllImport("__Internal")]
-    private static extern void Puls_ClearStorage();
+    private static extern string Puls_GetUserId();
 
-    // Методы Puls Storage
+    // Local Storage (user-specific)
     [DllImport("__Internal")]
-    private static extern void Puls_SaveToPulsStorage(string key, string value);
+    private static extern void Puls_SaveToLocalStorage(string userId, string key, string value);
     
     [DllImport("__Internal")]
-    private static extern int Puls_LoadFromPulsStorage(string key, Action<IntPtr> callback);
+    private static extern IntPtr Puls_LoadFromLocalStorage(string userId, string key);
+    
+    [DllImport("__Internal")]
+    private static extern void Puls_RemoveFromLocalStorage(string userId, string key);
+    
+    [DllImport("__Internal")]
+    private static extern void Puls_ClearUserLocalStorage(string userId);
+
+    // Puls Cloud Storage
+    [DllImport("__Internal")]
+    private static extern void Puls_SaveToCloud(string userId, string data, Action<string> callback, Action<string> errorCallback);
+    
+    [DllImport("__Internal")]
+    private static extern void Puls_LoadFromCloud(string userId, string syncToken, Action<string, string> callback, Action<string> errorCallback);
     
     [DllImport("__Internal")]
     private static extern void Puls_FreeMemory(IntPtr ptr);
@@ -76,64 +79,82 @@ public static class PulsBridge
         }
     }
 
-    // Local Storage
-    public static void SaveData(string key, string value) {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        Puls_SaveToStorage(key, value);
+    public static string UserId
+    {
+        get
+        {
+#if !UNITY_EDITOR && UNITY_WEBGL
+            return Puls_GetUserId();
 #else
-        PlayerPrefs.SetString(key, value);
+            return "editor-user"; 
+#endif
+        }
+    }
+
+    // Local Storage 
+    public static void SaveLocalData(string key, string value)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        Puls_SaveToLocalStorage(UserId, key, value);
+#else
+        PlayerPrefs.SetString($"{UserId}_{key}", value);
 #endif
     }
 
-    public static string LoadData(string key) {
+    public static string LoadLocalData(string key)
+    {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        IntPtr ptr = Puls_LoadFromStorage(key);
+        IntPtr ptr = Puls_LoadFromLocalStorage(UserId, key);
         if (ptr == IntPtr.Zero) return null;
         string result = Marshal.PtrToStringAuto(ptr);
         Puls_FreeMemory(ptr);
         return result;
 #else
-        return PlayerPrefs.GetString(key, null);
+        return PlayerPrefs.GetString($"{UserId}_{key}", null);
 #endif
     }
 
-    // Puls Storage
-    public static void SaveToPulsStorage(string key, string value) {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        Puls_SaveToPulsStorage(key, value);
-#else
-        Debug.LogWarning("PulsStorage not available in editor");
-#endif
-    }
-
-    public static void LoadFromPulsStorage(string key, Action<string> callback) {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        Puls_LoadFromPulsStorage(key, (ptr) => {
-            string result = ptr != IntPtr.Zero ? Marshal.PtrToStringAuto(ptr) : null;
-            if (ptr != IntPtr.Zero) Puls_FreeMemory(ptr);
-            callback?.Invoke(result);
-        });
-#else
-        callback?.Invoke(null);
-        Debug.LogWarning("PulsStorage not available in editor");
-#endif
-    }
-
-    public static void RemoveData(string key)
+    public static void RemoveLocalData(string key)
     {
 #if !UNITY_EDITOR && UNITY_WEBGL
-        Puls_RemoveFromStorage(key);
+        Puls_RemoveFromLocalStorage(UserId, key);
 #else
-        PlayerPrefs.DeleteKey(key);
+        PlayerPrefs.DeleteKey($"{UserId}_{key}");
 #endif
     }
 
-    public static void ClearAllData()
+    public static void ClearUserData()
     {
 #if !UNITY_EDITOR && UNITY_WEBGL
-        Puls_ClearStorage();
+        Puls_ClearUserLocalStorage(UserId);
 #else
         PlayerPrefs.DeleteAll();
 #endif
     }
+
+    // Puls Cloud Storage
+    public static void SaveToCloud(string data, Action<string> onSuccess, Action<string> onError)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        Puls_SaveToCloud(UserId, data, 
+            syncToken => onSuccess?.Invoke(syncToken),
+            error => onError?.Invoke(error));
+#else
+        Debug.LogWarning("PulsStorage not available in editor");
+        onError?.Invoke("UNKNOWN");
+#endif
+    }
+
+    public static void LoadFromCloud(string syncToken, Action<string, string> onSuccess, Action<string> onError)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        Puls_LoadFromCloud(UserId, syncToken,
+            (data, newSyncToken) => onSuccess?.Invoke(data, newSyncToken),
+            error => onError?.Invoke(error));
+#else
+        Debug.LogWarning("PulsStorage not available in editor");
+        onError?.Invoke("UNKNOWN");
+#endif
+    }
 }
+
