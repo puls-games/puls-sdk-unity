@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Create Builds directory
+        run: mkdir -p build
       
       - name: create unitypackage from files
         uses: natsuneko-laboratory/create-unitypackage@v3
@@ -19,4 +22,4 @@ jobs:
             ./Assets/Plugins/PulsBridge.jslib
             ./Assets/Puls/PulsBridge.cs
             ./Assets/WebGLTemplates/PulsTemplate/index.html
-          dest: test.unitypackage
+          dest: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
