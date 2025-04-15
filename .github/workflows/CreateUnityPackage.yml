@@ -1,0 +1,34 @@
+name: CreateUnityPackage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  create-package:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        
+    - name: Create UnityPackage
+      uses: game-ci/create-unitypackage@v2
+      with:
+        files: |
+          Assets/Plugins/PulsBridge.jslib
+          Assets/Puls/PulsBridge.cs
+          Assets/WebGLTemplates/PulsTemplate/index.html
+        package-name: 'PulsBridgeSDK'
+        output-path: 'Packages'
+        version: '1.0.${{ github.run_number }}'
+        
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: PulsBridgeSDK.unitypackage
+        path: Packages/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
