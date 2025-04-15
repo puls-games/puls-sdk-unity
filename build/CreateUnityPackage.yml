@@ -1,0 +1,25 @@
+name: Create PulsBridge Unity Package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Builds directory
+        run: mkdir -p build
+      
+      - name: create unitypackage from files
+        uses: natsuneko-laboratory/create-unitypackage@v3
+        with:
+          files: |
+            ./Assets/Plugins/PulsBridge.jslib
+            ./Assets/Puls/PulsBridge.cs
+            ./Assets/WebGLTemplates/PulsTemplate/index.html
+          dest: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
