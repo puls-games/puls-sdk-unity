@@ -20,10 +20,3 @@ jobs:
             ./Assets/Puls/PulsBridge.cs
             ./Assets/WebGLTemplates/PulsTemplate/index.html
           dest: test.unitypackage
-
-      - name: create unitypackage from glob pattern
-        uses: natsuneko-laboratory/create-unitypackage@v3
-        with:
-          files-glob: |
-            ./Assets/NatsunekoLaboratory/**/*.cs
-          dest: test.unitypackage
