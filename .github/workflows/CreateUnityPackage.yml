@@ -7,31 +7,19 @@ on:
     branches: [main]
 
 jobs:
-  create-package:
+  build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Generate meta file list
-      run: |
-        echo "Assets/Plugins/PulsBridge.jslib.meta" > metaList
-        echo "Assets/Puls/PulsBridge.cs.meta" >> metaList
-        echo "Assets/WebGLTemplates/PulsTemplate/index.html.meta" >> metaList
-        find Assets/Plugins/ -name PulsBridge* >> metaList
-        find Assets/Puls/ -name PulsBridge* >> metaList
-        find Assets/WebGLTemplates/PulsTemplate/ -type f >> metaList
-        
-    - name: Create Builds directory
-      run: mkdir -p build
-    
-    - name: Create Unity Package
-      uses: pCYSl5EDgo/create-unitypackage@master
-      with:
-        package-path: 'build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage'
-        include-files: metaList
-    
-    - name: Upload Package Artifact
-      uses: actions/upload-artifact@master
-      with:
-        path: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
-        name: PulsBridge-UnityPackage
+      - uses: actions/checkout@v4
+
+      - name: Create Builds directory
+        run: mkdir -p build
+      
+      - name: create unitypackage from files
+        uses: natsuneko-laboratory/create-unitypackage@v3
+        with:
+          files: |
+            ./Assets/Plugins/PulsBridge.jslib
+            ./Assets/Puls/PulsBridge.cs
+            ./Assets/WebGLTemplates/PulsTemplate/index.html
+          dest: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
