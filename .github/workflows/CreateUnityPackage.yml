@@ -21,17 +21,17 @@ jobs:
         find Assets/Puls/ -name PulsBridge* >> metaList
         find Assets/WebGLTemplates/PulsTemplate/ -type f >> metaList
         
-    - name: Create Packages directory
-      run: mkdir -p Packages
+    - name: Create Builds directory
+      run: mkdir -p build
     
     - name: Create Unity Package
       uses: pCYSl5EDgo/create-unitypackage@master
       with:
-        package-path: 'Packages/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage'
+        package-path: 'build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage'
         include-files: metaList
     
     - name: Upload Package Artifact
       uses: actions/upload-artifact@master
       with:
-        path: Packages/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+        path: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
         name: PulsBridge-UnityPackage
