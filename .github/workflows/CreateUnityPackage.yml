@@ -14,9 +14,6 @@ jobs:
     
     - name: Generate meta file list
       run: |
-        echo "Assets/Plugins/PulsBridge.jslib.meta" > metaList
-        echo "Assets/Puls/PulsBridge.cs.meta" >> metaList
-        echo "Assets/WebGLTemplates/PulsTemplate/index.html.meta" >> metaList
         find Assets/Plugins/ -name PulsBridge* >> metaList
         find Assets/Puls/ -name PulsBridge* >> metaList
         find Assets/WebGLTemplates/PulsTemplate/ -type f >> metaList
