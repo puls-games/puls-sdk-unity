@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Полная история для корректной работы
+          fetch-depth: 0
 
       - name: Verify files exist
         run: |
@@ -23,24 +23,12 @@ jobs:
       - name: Create Builds directory
         run: mkdir -p build
       
-      - name: Create unitypackage
-        id: create-pkg
-        uses: natsuneko-laboratory/create-unitypackage@v3
-        with:
-          files: |
-            Assets/Plugins/PulsBridge.jslib
-            Assets/Puls/PulsBridge.cs
-            Assets/WebGLTemplates/PulsTemplate/index.html
-          dest: ./build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
-
-      - name: Verify package creation
+      - name: Create unitypackage manually
         run: |
-          ls -la build/
-          test -f build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage || exit 1
-
-      - name: Upload artifact
-        if: steps.create-pkg.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: PulsBridgeSDK
-          path: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+          UNITY_PACKAGE=build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+          mkdir -p temp_pkg
+          cp -r Assets/Plugins/PulsBridge.jslib temp_pkg/
+          cp -r Assets/Puls/PulsBridge.cs temp_pkg/
+          cp -r Assets/WebGLTemplates/PulsTemplate temp_pkg/
+          zip -r $UNITY_PACKAGE temp_pkg/
+          rm -rf temp_pkg
