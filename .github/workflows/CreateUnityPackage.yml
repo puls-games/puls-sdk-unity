@@ -23,3 +23,15 @@ jobs:
             ./Assets/Puls/PulsBridge.cs
             ./Assets/WebGLTemplates/PulsTemplate/index.html
           dest: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+
+      - name: Verify package creation
+        run: |
+          ls -la build/
+          test -f build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage || exit 1
+
+      - name: Upload artifact
+        if: steps.create-pkg.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: PulsBridgeSDK
+          path: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
