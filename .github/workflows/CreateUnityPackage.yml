@@ -1,4 +1,4 @@
-name: CreateUnityPackage
+name: Create PulsBridge Unity Package
 
 on:
   push:
@@ -9,37 +9,29 @@ on:
 jobs:
   create-package:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        
-    - name: Verify files exist
+    - uses: actions/checkout@v2
+    
+    - name: Generate meta file list
       run: |
-        ls Assets/Plugins/PulsBridge.jslib || exit 1
-        ls Assets/Puls/PulsBridge.cs || exit 1
-        ls Assets/WebGLTemplates/PulsTemplate/index.html || exit 1
+        echo "Assets/Plugins/PulsBridge.jslib.meta" > metaList
+        echo "Assets/Puls/PulsBridge.cs.meta" >> metaList
+        echo "Assets/WebGLTemplates/PulsTemplate/index.html.meta" >> metaList
+        find Assets/Plugins/ -name PulsBridge* >> metaList
+        find Assets/Puls/ -name PulsBridge* >> metaList
+        find Assets/WebGLTemplates/PulsTemplate/ -type f >> metaList
         
-    - name: Create UnityPackage
-      id: create-pkg
-      uses: game-ci/unity-actions/create-unitypackage@v0.1
+    - name: Create Packages directory
+      run: mkdir -p Packages
+    
+    - name: Create Unity Package
+      uses: pCYSl5EDgo/create-unitypackage@master
       with:
-        files: |
-          Assets/Plugins/PulsBridge.jslib
-          Assets/Puls/PulsBridge.cs
-          Assets/WebGLTemplates/PulsTemplate/index.html
-        package-name: 'PulsBridgeSDK'
-        output-path: 'Packages'
-        version: '1.0.${{ github.run_number }}'
-        
-    - name: Verify package created
-      run: ls Packages/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage || exit 1
-        
-    - name: Upload Artifact
-      if: steps.create-pkg.outcome == 'success'
-      uses: actions/upload-artifact@v3
+        package-path: 'Packages/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage'
+        include-files: metaList
+    
+    - name: Upload Package Artifact
+      uses: actions/upload-artifact@master
       with:
-        name: PulsBridgeSDK.unitypackage
         path: Packages/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+        name: PulsBridge-UnityPackage
