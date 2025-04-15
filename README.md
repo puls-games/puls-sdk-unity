@@ -29,17 +29,31 @@ if (PulsBridge.IsMobile) {
 // Get user language
 string userLanguage = PulsBridge.Language;
 
-// Save data
-PulsBridge.SaveData("playerName", "John Doe");
+// Local Storage
+PulsBridge.SaveLocalData("playerName", "John Doe");
 
-// Load data
-string playerName = PulsBridge.LoadData("playerName");
+string playerName = PulsBridge.LoadLocalData("playerName");
 
-// Remove data
-PulsBridge.RemoveData("playerName");
+PulsBridge.RemoveLocalData("playerName");
 
-// Clear all data
-PulsBridge.ClearAllData();
+PulsBridge.ClearUserData();
+
+// Puls Storage
+PulsBridge.SaveToCloud(jsonData, (syncToken) =>
+ {
+    Debug.Log($"Saved with SyncToken: {syncToken}");
+ });
+
+PulsBridge.LoadFromCloud(lastSyncToken, (data, newSyncToken) =>
+ {
+  if (string.IsNullOrEmpty(data))
+  {
+   Debug.Log("Local storage have last save");
+   return;
+  }                
+  var gameData = JsonUtility.FromJson<GameData>(data);
+  Debug.Log($"Loaded data {gamedata}");
+});
 ```
 
 
