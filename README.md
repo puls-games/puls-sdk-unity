@@ -29,6 +29,9 @@ if (PulsBridge.IsMobile) {
 // Get user language
 string userLanguage = PulsBridge.Language;
 
+// Get user ID
+string userId = PulsBridge.UserId;
+
 // Local Storage
 PulsBridge.SaveLocalData("playerName", "John Doe");
 
