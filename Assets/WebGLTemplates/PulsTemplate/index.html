@@ -34,6 +34,7 @@
 
   <script>
     const canvas = document.getElementsByTagName('canvas')[0];
+    const script = document.createElement("script");
     const onLoading = (p) => window.puls.loading(100 * p);
 
     const buildUrl = "Build";
@@ -51,7 +52,6 @@
     canvas.style.width = "100%";
     canvas.style.height = "100%";
 
-    const script = document.createElement("script");
     script.src = loaderUrl;
     script.onload = () => {
       createUnityInstance(canvas, config, onLoading)
