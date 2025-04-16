@@ -17,8 +17,8 @@ jobs:
           ls Assets/Plugins/PulsBridge.jslib || exit 1
           ls Assets/Puls/PulsBridge.cs || exit 1
           ls Assets/Puls/PulsExample.cs || exit 1
-          ls Assets/WebGLTemplates/Puls Games/index.html || exit 1
-          ls Assets/WebGLTemplates/Puls Games/thumbnail.png || exit 1
+          ls Assets/WebGLTemplates/PulsGames/index.html || exit 1
+          ls Assets/WebGLTemplates/PulsGames/thumbnail.png || exit 1
 
       - name: Setup build directory
         run: |
@@ -34,8 +34,8 @@ jobs:
             Assets/Plugins/PulsBridge.jslib
             Assets/Puls/PulsBridge.cs
             Assets/Puls/PulsExample.cs
-            Assets/WebGLTemplates/PulsTemplate/index.html
-            Assets/WebGLTemplates/Puls Games/thumbnail.png
+            Assets/WebGLTemplates/PulsGames/index.html
+            Assets/WebGLTemplates/PulsGames/thumbnail.png
           dest: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
 
       - name: Verify package creation
