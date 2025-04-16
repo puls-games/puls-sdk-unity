@@ -3,67 +3,50 @@ name: Create PulsBridge Unity Package
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
-      - name: Setup debug info
+      - name: Verify files exist
         run: |
-          echo "### SYSTEM INFO ###"
-          uname -a
-          df -h
-          whoami
-          echo "### WORKSPACE ###"
-          pwd
-          ls -la
-          echo "### FILES CHECK ###"
-          ls -la Assets/Plugins/PulsBridge.jslib
-          ls -la Assets/Puls/PulsBridge.cs
-          ls -la Assets/WebGLTemplates/PulsTemplate/index.html
+          ls Assets/Plugins/PulsBridge.jslib || exit 1
+          ls Assets/Puls/PulsBridge.cs || exit 1
+          ls Assets/WebGLTemplates/PulsTemplate/index.html || exit 1
 
-      - name: Create build directory
+      - name: Setup build directory
         run: |
           mkdir -p build
-          chmod 777 build
-          echo "### BUILD DIR PERMISSIONS ###"
-          ls -ld build
-          touch build/testfile.txt
-          echo "Test content" > build/testfile.txt
-          ls -la build/
+          chmod 777 build 
+          ls -la          
 
-      - name: Create unitypackage (Alternative method)
+      - name: Create unitypackage
+        id: create-pkg
+        uses: natsuneko-laboratory/create-unitypackage@v3
+        with:
+          files: |
+            Assets/Plugins/PulsBridge.jslib
+            Assets/Puls/PulsBridge.cs
+            Assets/WebGLTemplates/PulsTemplate/index.html
+          dest: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+
+      - name: Verify package creation
         run: |
-          echo "### CREATING PACKAGE MANUALLY ###"
-          mkdir -p temp_pkg/Assets
-          
-          # Копируем необходимые файлы с сохранением структуры
-          mkdir -p temp_pkg/Assets/Plugins
-          cp Assets/Plugins/PulsBridge.jslib temp_pkg/Assets/Plugins/
-          
-          mkdir -p temp_pkg/Assets/Puls
-          cp Assets/Puls/PulsBridge.cs temp_pkg/Assets/Puls/
-          
-          mkdir -p temp_pkg/Assets/WebGLTemplates/PulsTemplate
-          cp Assets/WebGLTemplates/PulsTemplate/index.html temp_pkg/Assets/WebGLTemplates/PulsTemplate/
-          
-          # Создаем .unitypackage через zip
-          cd temp_pkg
-          zip -r ../build/PulsBridgeSDK.manual.unitypackage .
-          cd ..
-          rm -rf temp_pkg
-          
-          echo "### RESULTING PACKAGE ###"
           ls -la build/
-          file build/PulsBridgeSDK.manual.unitypackage
+          test -f build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage || exit 1
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: PulsBridgeSDK
-          path: build/PulsBridgeSDK.manual.unitypackage
+          path: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
