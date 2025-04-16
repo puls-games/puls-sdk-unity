@@ -3,14 +3,27 @@ name: Create PulsBridge Unity Package
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    tags:
+      - 'v*.*.*'
 
 jobs:
+  # test:
+    # TODO: add tests
+
   build:
+    # needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=0.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Verify files exist
         run: |
@@ -32,21 +45,24 @@ jobs:
             Assets/Plugins/PulsBridge.jslib
             Assets/Puls/PulsBridge.cs
             Assets/WebGLTemplates/PulsTemplate/index.html
-          dest: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+          dest: build/PulsBridgeSDK.${{ steps.get_version.outputs.version }}.unitypackage
 
       - name: Verify package creation
         run: |
           ls -la build/
-          test -f build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage || exit 1
+          test -f build/PulsBridgeSDK.${{ steps.get_version.outputs.version }}.unitypackage || exit 1
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: PulsBridgeSDK
-          path: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+          path: build/PulsBridgeSDK.${{ steps.get_version.outputs.version }}.unitypackage
 
-      - name: Upload to Release
-        uses: softprops/action-gh-release@v1
+      - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
         with:
-          files: build/PulsBridgeSDK.1.0.${{ github.run_number }}.unitypackage
+          files: build/PulsBridgeSDK.${{ steps.get_version.outputs.version }}.unitypackage
+          generate_release_notes: true
+          draft: false
+          prerelease: false
