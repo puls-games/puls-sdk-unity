@@ -58,57 +58,78 @@ mergeInto(LibraryManager.library, {
     },
 
     // Puls Cloud Storage
-    Puls_SaveToCloud: function(userIdPtr, dataPtr, callback, errorCallback) {
-        const userId = UTF8ToString(userIdPtr);
-        const data = UTF8ToString(dataPtr);
-        
-        if (!window.puls || !window.puls.storage) {
-            Runtime.dynCall('v', errorCallback, ["UNKNOWN"]);
-            return;
-        }
+     Puls_SaveToCloud: function(dataPtr, successCallback, errorCallback) {
+        try {
+            if (!window.puls || !window.puls.storage) {
+                throw new Error("PULS_STORAGE_NOT_AVAILABLE");
+            }
 
-        window.puls.storage.save(data)
-            .then(syncToken => {
-                const buffer = _malloc(lengthBytesUTF8(syncToken) + 1);
-                stringToUTF8(syncToken, buffer, lengthBytesUTF8(syncToken) + 1);
-                Runtime.dynCall('vi', callback, [buffer]);
-            })
-            .catch(error => {
-                const errorMsg = error.message || 'UNKNOWN';
-                const buffer = _malloc(lengthBytesUTF8(errorMsg) + 1);
-                stringToUTF8(errorMsg, buffer, lengthBytesUTF8(errorMsg) + 1);
-                Runtime.dynCall('vi', errorCallback, [buffer]);
-            });
+            var data = UTF8ToString(dataPtr);
+            
+            window.puls.storage.save(data)
+                .then(function(syncToken) {
+                    var buffer = _malloc(lengthBytesUTF8(syncToken) + 1);
+                    stringToUTF8(syncToken, buffer, lengthBytesUTF8(syncToken) + 1);
+                    dynCall('vi', successCallback, [buffer]);
+                    _free(buffer);
+                })
+                .catch(function(error) {
+                    var errorMsg = error.message || 'UNKNOWN';
+                    var buffer = _malloc(lengthBytesUTF8(errorMsg) + 1);
+                    stringToUTF8(errorMsg, buffer, lengthBytesUTF8(errorMsg) + 1);
+                    dynCall('vi', errorCallback, [buffer]);
+                    _free(buffer);
+                });
+        } catch (e) {
+            var errorMsg = e.message || 'UNKNOWN';
+            var buffer = _malloc(lengthBytesUTF8(errorMsg) + 1);
+            stringToUTF8(errorMsg, buffer, lengthBytesUTF8(errorMsg) + 1);
+            dynCall('vi', errorCallback, [buffer]);
+            _free(buffer);
+        }
     },
 
-    Puls_LoadFromCloud: function(userIdPtr, syncTokenPtr, callback, errorCallback) {
-        const syncToken = UTF8ToString(syncTokenPtr);
-        
-        if (!window.puls || !window.puls.storage) {
-            Runtime.dynCall('v', errorCallback, ["UNKNOWN"]);
-            return;
-        }
+    // Puls Cloud Storage - Load
+    Puls_LoadFromCloud: function(syncTokenPtr, successCallback, errorCallback) {
+        try {
+            if (!window.puls || !window.puls.storage) {
+                throw new Error("PULS_STORAGE_NOT_AVAILABLE");
+            }
 
-        window.puls.storage.load(syncToken || undefined)
-            .then(response => {
-                const data = response.data || '';
-                const syncToken = response.sync || '';
-                
-                const dataBuffer = _malloc(lengthBytesUTF8(data) + 1);
-                stringToUTF8(data, dataBuffer, lengthBytesUTF8(data) + 1);
-                
-                const syncBuffer = _malloc(lengthBytesUTF8(syncToken) + 1);
-                stringToUTF8(syncToken, syncBuffer, lengthBytesUTF8(syncToken) + 1);
-                
-                Runtime.dynCall('vii', callback, [dataBuffer, syncBuffer]);
-            })
-            .catch(error => {
-                const errorMsg = error.message || 'UNKNOWN';
-                const buffer = _malloc(lengthBytesUTF8(errorMsg) + 1);
-                stringToUTF8(errorMsg, buffer, lengthBytesUTF8(errorMsg) + 1);
-                Runtime.dynCall('vi', errorCallback, [buffer]);
-            });
+            var syncToken = syncTokenPtr ? UTF8ToString(syncTokenPtr) : null;
+            
+            window.puls.storage.load(syncToken || undefined)
+                .then(function(response) {
+                    var data = response.data || '';
+                    var newSyncToken = response.sync || '';
+                    
+                    var dataBuffer = _malloc(lengthBytesUTF8(data) + 1);
+                    stringToUTF8(data, dataBuffer, lengthBytesUTF8(data) + 1);
+                    
+                    var tokenBuffer = _malloc(lengthBytesUTF8(newSyncToken) + 1);
+                    stringToUTF8(newSyncToken, tokenBuffer, lengthBytesUTF8(newSyncToken) + 1);
+                    
+                    dynCall('vii', successCallback, [dataBuffer, tokenBuffer]);
+                    
+                    _free(dataBuffer);
+                    _free(tokenBuffer);
+                })
+                .catch(function(error) {
+                    var errorMsg = error.message || 'UNKNOWN';
+                    var buffer = _malloc(lengthBytesUTF8(errorMsg) + 1);
+                    stringToUTF8(errorMsg, buffer, lengthBytesUTF8(errorMsg) + 1);
+                    dynCall('vi', errorCallback, [buffer]);
+                    _free(buffer);
+                });
+        } catch (e) {
+            var errorMsg = e.message || 'UNKNOWN';
+            var buffer = _malloc(lengthBytesUTF8(errorMsg) + 1);
+            stringToUTF8(errorMsg, buffer, lengthBytesUTF8(errorMsg) + 1);
+            dynCall('vi', errorCallback, [buffer]);
+            _free(buffer);
+        }
     },
+
 
     Puls_FreeMemory: function(buffer) {
         _free(buffer);

@@ -32,10 +32,10 @@ public static class PulsBridge
 
     // Puls Cloud Storage
     [DllImport("__Internal")]
-    private static extern void Puls_SaveToCloud(string userId, string data, Action<string> callback, Action<string> errorCallback);
+    private static extern void Puls_SaveToCloud(string data, Action<string> successCallback, Action<string> errorCallback);
     
     [DllImport("__Internal")]
-    private static extern void Puls_LoadFromCloud(string userId, string syncToken, Action<string, string> callback, Action<string> errorCallback);
+    private static extern void Puls_LoadFromCloud(string syncToken, Action<string, string> successCallback, Action<string> errorCallback);
     
     [DllImport("__Internal")]
     private static extern void Puls_FreeMemory(IntPtr ptr);
@@ -69,9 +69,6 @@ public static class PulsBridge
         get
         {
 #if !UNITY_EDITOR && UNITY_WEBGL
-            //IntPtr ptr = Puls_GetLanguage();
-            //string result = Marshal.PtrToStringAuto(ptr);
-            //Puls_FreeMemory(ptr);
             return Puls_GetLanguage();
 #else
             return Application.systemLanguage.ToString();
@@ -136,9 +133,10 @@ public static class PulsBridge
     public static void SaveToCloud(string data, Action<string> onSuccess, Action<string> onError)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        Puls_SaveToCloud(UserId, data, 
-            syncToken => onSuccess?.Invoke(syncToken),
-            error => onError?.Invoke(error));
+        CallbackHelper.onSaveSuccess = onSuccess;
+        CallbackHelper.onSaveError = onError;
+        
+        Puls_SaveToCloud(data, CallbackHelper.OnSaveSuccess, CallbackHelper.OnSaveError);
 #else
         Debug.LogWarning("PulsStorage not available in editor");
         onError?.Invoke("UNKNOWN");
@@ -148,13 +146,46 @@ public static class PulsBridge
     public static void LoadFromCloud(string syncToken, Action<string, string> onSuccess, Action<string> onError)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        Puls_LoadFromCloud(UserId, syncToken,
-            (data, newSyncToken) => onSuccess?.Invoke(data, newSyncToken),
-            error => onError?.Invoke(error));
+        CallbackHelper.onLoadSuccess = onSuccess;
+        CallbackHelper.onLoadError = onError;
+        
+        Puls_LoadFromCloud(syncToken, CallbackHelper.OnLoadSuccess, CallbackHelper.OnLoadError);
 #else
         Debug.LogWarning("PulsStorage not available in editor");
         onError?.Invoke("UNKNOWN");
 #endif
+    }
+    
+    private static class CallbackHelper
+    {
+        public static Action<string> onSaveSuccess;
+        public static Action<string> onSaveError;
+        public static Action<string, string> onLoadSuccess;
+        public static Action<string> onLoadError;
+
+        [AOT.MonoPInvokeCallback(typeof(Action<string>))]
+        public static void OnSaveSuccess(string syncToken)
+        {
+            onSaveSuccess?.Invoke(syncToken);
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(Action<string>))]
+        public static void OnSaveError(string error)
+        {
+            onSaveError?.Invoke(error);
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(Action<string, string>))]
+        public static void OnLoadSuccess(string data, string syncToken)
+        {
+            onLoadSuccess?.Invoke(data, syncToken);
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(Action<string>))]
+        public static void OnLoadError(string error)
+        {
+            onLoadError?.Invoke(error);
+        }
     }
 }
 
