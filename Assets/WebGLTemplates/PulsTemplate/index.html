@@ -31,10 +31,10 @@
 </head>
 
 <body>
-  <canvas tabindex="-1"></canvas>
+  <canvas id="unity-canvas" tabindex="-1"></canvas>
 
   <script>
-    const canvas = document.getElementsByTagName('canvas')[0];
+    const canvas = document.getElementById('unity-canvas');
     const script = document.createElement("script");
     const onLoading = (p) => window.puls.loading(100 * p);
 
