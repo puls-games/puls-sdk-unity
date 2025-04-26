@@ -32,31 +32,26 @@ string userLanguage = PulsBridge.Language;
 // Get user ID
 string userId = PulsBridge.UserId;
 
-// Local Storage
-PulsBridge.SaveLocalData("playerName", "John Doe");
+// Storage
+public static void Init(Action onFinish)
+{
+    PulsPlayerPrefs.Initialize(() =>
+   {
+    var jsonData = PulsPlayerPrefs.GetString(PrefsKey);
+    loadedData = JsonUtility.FromJson<GameData>(jsonData);
 
-string playerName = PulsBridge.LoadLocalData("playerName");
+    onFinish?.Invoke();
+   });
+}
 
-PulsBridge.RemoveLocalData("playerName");
-
-PulsBridge.ClearUserData();
-
-// Puls Storage
-PulsBridge.SaveToCloud(jsonData, (syncToken) =>
- {
-    Debug.Log($"Saved with SyncToken: {syncToken}");
- });
-
-PulsBridge.LoadFromCloud(lastSyncToken, (data, newSyncToken) =>
- {
-  if (string.IsNullOrEmpty(data))
-  {
-   Debug.Log("Local storage have last save");
-   return;
-  }                
-  var gameData = JsonUtility.FromJson<GameData>(data);
-  Debug.Log($"Loaded data {gamedata}");
-});
+public void Save()
+{
+    var jsonData = JsonUtility.ToJson(GameData);
+    PulsPlayerPrefs.SetString(PrefsKey, jsonData);
+#if UNITY_EDITOR
+    PlayerPrefs.Save();
+#endif
+}
 ```
 
 
