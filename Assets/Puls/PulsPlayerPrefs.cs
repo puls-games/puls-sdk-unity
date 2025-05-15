@@ -89,7 +89,7 @@ public static class PulsPlayerPrefs
     private static PrefsData data = new PrefsData();
     private static long lastSyncedSaves;
 
-    public static void Initialize(Action onFinish, Action<string> onError = null, int refreshInterval = 5)
+    public static void Initialize(Action onFinish, Action<string> onError = null, int refreshInterval = 10)
     {
         RunSyncLoop(refreshInterval);
 
