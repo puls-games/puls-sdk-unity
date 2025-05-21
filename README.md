@@ -18,6 +18,12 @@ Documentation could be found at the [official website][https://hello.puls.games/
 
 5. Ready!
 
+## Saves
+
+At the first boot, you need to initialize the save system using the PulsPlayerPrefs.Initialize(() => {}) method. After the callback, the save system will load the latest saves and they can be used. 
+The saving system in Puls completely copies the standard PlayerPrefs methods in Unity, with usage examples listed below in the API.
+IMPORTANT: do not set the refresh interval in the initialization method to less than 10 seconds.
+
 ## API
 
 ```CSharp
@@ -33,6 +39,21 @@ string userLanguage = PulsBridge.Language;
 string userId = PulsBridge.UserId;
 
 // Storage
+PulsPlayerPrefs.SetString(string key, string value)
+PulsPlayerPrefs.GetString(string key, string defaultValue = null)
+
+PulsPlayerPrefs.SetInt(string key, int value)
+PulsPlayerPrefs.GetInt(string key, int defaultValue = 0)
+
+PulsPlayerPrefs.SetFloat(string key, float value)
+PulsPlayerPrefs.GetFloat(string key, float defaultValue = 0f)
+
+PulsPlayerPrefs.HasKey(string key)
+
+PulsPlayerPrefs.DeleteKey(string key)
+PulsPlayerPrefs.DeleteAll()
+
+// Storage Example
 public static void Init(Action onFinish)
 {
     PulsPlayerPrefs.Initialize(() =>
